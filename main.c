@@ -4,23 +4,26 @@
 
 typedef struct saper
 {
+	//r wiersze c kolumny mines ile min lacznie w planszy
 	int r;
 	int c;
 	int mines;
 	int **tab;
 }saper;
 
-saper *init(int r, int c,int mines ){
+saper *init(int r, int c,int mines ){	
 	saper* A=(saper*)malloc(sizeof(saper));
 	A->r=r;
 	A->c=c;
 	A->mines=mines;
+	//przypisanie 2 wymiarowej tablicy pamieci
 	A->tab=(int**)calloc(r,sizeof(int*));
 	for(int i=0;i<r;i++)
 		A->tab[i]=(int *)calloc(c,sizeof(int));
 	return A;
 }
- 
+
+//zwalnianie pamieci
 void free_saper(saper* A) {
     for (int i = 0; i < A->r; i++) {
         free(A->tab[i]);
@@ -47,7 +50,7 @@ saper *assign(saper *A)
 	return A;
 }
 void sasiady(saper *A,int **tab2){
-	//tab2 liczy ile min w sasiedztwie
+	//tab2 liczy ile min w sasiedztwie jak jest mina w dokola wspolrzednej w tab to do tab2 dopisujamy ++
 
 
 }
@@ -103,9 +106,12 @@ int main()
 	saper*A=NULL;
 	A=start(A);
 	A=assign(A);
+	//tab2 liczy ile min dokola
+	//tworzenie 2 wymiarowe tab2
 	int **tab2=(int**)calloc(A->r,sizeof(int*));
 	for(int i=0;i<A->r;i++)
 		tab2=(int *)calloc(A->c,sizeof(int));
+	sasiady(A,tab2);
 	free_saper(A);
 	return 0;
 }
