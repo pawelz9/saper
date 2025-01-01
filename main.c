@@ -1,17 +1,19 @@
 #include<stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include<time.h>
 
 typedef struct saper
 {
 	//r wiersze c kolumny mines ile min lacznie w planszy
+	char nazwa[15];
 	int r;
 	int c;
 	int mines;
 	int **tab;
 }saper;
 
-saper *init(int r, int c,int mines ){	
+saper *init(int r, int c,int mines){	
 	saper* A=(saper*)malloc(sizeof(saper));
 	A->r=r;
 	A->c=c;
@@ -85,6 +87,8 @@ void sasiady(saper *A,int **tab2){
 }
 
 void test(saper *A,int **tab2){
+	//nazwa
+	printf("\nnazywasz sie %s",A->nazwa);
 	//testowo print sasiady
 	for(int i=0;i<A->r;i++){
 		printf("\n");
@@ -103,11 +107,36 @@ void test(saper *A,int **tab2){
 
 }
 
+int DFS(){
+	//jakis dfs lub cos podobnego gdy klikniemy a dokola nie ma bomb to ma odkrywac 
+}
+void rysuj(saper *A,int **tab2,char z,int r,int c){}
+void gra(saper *A,int **tab2){
+	char z=' ';
+	int r,c;
+	//czyszczenie tablicy
+	printf("\033[H\033[J");
+	printf("\n---GRA SAPER---");
+	printf("\nsterowanie:");
+	printf("\nwpisz pole jakie chcesz zaznaczyc wedlug schematu");
+	printf("\nprzykladowa flaga- f 3 4  stawia flage w 3 wierszu 4 kolumnei");
+	printf("\nodkrycie pola przykladowe - o 14 5   odkrywa pole w wierszu 14 kolumnie 5");
+	printf("\nwyjscie z gry - q");
+	while(z!='q'){
+		printf("\nwykonaj ruch: ");
+		scanf(" %c",&z);
+		if(z=='q')
+			break;
+		scanf(" %i %i",&r,&c);
+		rysuj(A,tab2,z,r,c);
+		//dodac liczenie wyniku i wczytanie do pliku wyniku po grze
+	}
+}
 saper *start(saper *A){
 	char x;
 	int k=1;
 	int r,c,mines;
-	printf ("GRA saperER\n");
+	printf ("GRA SAPER\n");
 	printf ("wybierz poziom trudnosci:\n");
 	printf ("l-latwy 9x9 10 min\n");
 	printf ("s-sredni 16x16 40 min\n");
@@ -116,6 +145,7 @@ saper *start(saper *A){
 	while(k){
 		k=0;
 		scanf(" %c",&x);
+		getchar();
 		if(x=='l')
 			A=init(9,9,10);
 		else if(x=='s')
@@ -152,16 +182,20 @@ int main()
 	srand((unsigned int)time(NULL)^getpid());
 	//plansza <=> A
 	saper*A=NULL;
+	
 	A=start(A);
+	printf("podaj nazwe: ");
+	scanf(" %s",A->nazwa);
 	A=assign(A);
+	
 	//tab2 liczy ile min dokola
 	//tworzenie 2 wymiarowe tab2
 	int **tab2=(int**)calloc(A->r,sizeof(int*));
 	for(int i=0;i<A->r;i++)
 		tab2[i]=(int *)calloc(A->c,sizeof(int));
 	sasiady(A,tab2);
-	test(A,tab2);
-	
+	//test(A,tab2);
+	gra(A,tab2);
 	free_saper(A);
 	return 0;
 }
