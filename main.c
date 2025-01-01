@@ -51,7 +51,55 @@ saper *assign(saper *A)
 }
 void sasiady(saper *A,int **tab2){
 	//tab2 liczy ile min w sasiedztwie jak jest mina w dokola wspolrzednej w tab to do tab2 dopisujamy ++
+	for(int i=0;i<A->r;i++){
+		for(int j=0;j<A->c;j++){
+			if(A->tab[i][j]==1)
+				continue;
+			//w prawo
+			if(j+1<A->c && A->tab[i][j+1]==1 )
+				tab2[i][j]++;
+			//prawy dol (skosnie)
+			if(j+1<A->c && i+1<A->r && A->tab[i+1][j+1]==1)
+				tab2[i][j]++;
+			//w dol
+			if(i+1<A->r && A->tab[i+1][j]==1)
+				tab2[i][j]++;
+			//w lewy dol
+			if(i+1<A->r && j>0 && A->tab[i+1][j-1]==1)
+				tab2[i][j]++;
+			//w lewo
+			if(j>0 && A->tab[i][j-1]==1)
+				tab2[i][j]++;
+			//lewa gora
+			if(j>0 && i>0 && A->tab[i-1][j-1]==1)
+				tab2[i][j]++;
+			//gora
+			if(i>0 && A->tab[i-1][j]==1)
+				tab2[i][j]++;
+			//prawa gora
+			if(i>0 && j+1<A->c && A->tab[i-1][j+1]==1)
+				tab2[i][j]++;
+		}
+	}
 
+}
+
+void test(saper *A,int **tab2){
+	//testowo print sasiady
+	for(int i=0;i<A->r;i++){
+		printf("\n");
+		for(int j=0;j<A->c;j++){
+			printf(" %i, ",tab2[i][j]);
+		}
+	}
+	printf("\n plansza A");
+	//printf planszy A
+	for(int i=0;i<A->r;i++){
+		printf("\n");
+		for(int j=0;j<A->c;j++){
+			printf(" %i, ",A->tab[i][j]);
+		}
+	}
 
 }
 
@@ -110,8 +158,10 @@ int main()
 	//tworzenie 2 wymiarowe tab2
 	int **tab2=(int**)calloc(A->r,sizeof(int*));
 	for(int i=0;i<A->r;i++)
-		tab2=(int *)calloc(A->c,sizeof(int));
+		tab2[i]=(int *)calloc(A->c,sizeof(int));
 	sasiady(A,tab2);
+	test(A,tab2);
+	
 	free_saper(A);
 	return 0;
 }
