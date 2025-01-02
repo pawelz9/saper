@@ -11,6 +11,7 @@ typedef struct saper
 	int c;
 	int mines;
 	char **tab;
+	char **rys;
 }saper;
 
 
@@ -23,6 +24,9 @@ saper *init(int r, int c, int mines){
 	plansza->tab = (char**)calloc(r, sizeof(char*));
 	for (int i = 0; i < r; i++)
 		plansza->tab[i] = (char*)calloc(c, sizeof(char));
+    plansza->rys = (char**)calloc(r, sizeof(char*));
+	for (int i = 0; i < r; i++)
+		plansza->rys[i] = (char*)calloc(c, sizeof(char));
 	return plansza;
 }
 
@@ -101,25 +105,25 @@ void sasiady(saper *A, int **tab2){
 
 void rysuj(saper *plansza, int **tab2, char z, int rows, int columns, FILE *ruchy) {
     printf("\nPlansza glowna:\n\n");
-
     // Gorna obwodka
-    printf("  "); 
+    printf("  ");
     for (int j = 0; j < plansza->c; j++) {
-        printf(" %2d", j); 
+        printf(" %2d", j);
     }
     printf("\n   ");
     for (int j = 0; j < plansza->c; j++) {
-        printf("___"); 
+        printf("___");
     }
     printf("\n");
 
     // Zawartosc planszy
     for (int i = 0; i < plansza->r; i++) {
-        printf("%2d|", i); 
+        printf("%2d|", i);
         for (int j = 0; j < plansza->c; j++) {
-            char znak = plansza->tab[i][j] == 'F'? plansza->tab[i][j]:plansza->tab[i][j] == 'O'?plansza->tab[i][j]:'.';
-            printf(" %c ", znak); 
-            fprintf(ruchy, " %c", znak); 
+            char znak = plansza->rys[i][j] == 'F'? plansza->rys[i][j]:plansza->rys[i][j] == 'O'?(char)(tab2[i][j]+'0'):'.';
+            //inna tablica zeby min nie zatracil
+            printf(" %c ", znak);
+            fprintf(ruchy, " %c", znak);
         }
         printf("\n");
     }
@@ -129,19 +133,19 @@ void rysuj(saper *plansza, int **tab2, char z, int rows, int columns, FILE *ruch
     // Gorna obwodka
     printf("  ");
     for (int j = 0; j < plansza->c; j++) {
-        printf(" %2d", j); 
+        printf(" %2d", j);
     }
     printf("\n   ");
     for (int j = 0; j < plansza->c; j++) {
-        printf("___"); 
+        printf("___");
     }
     printf("\n");
 
     // Zawartosc pomocniczej planszy
     for (int i = 0; i < plansza->r; i++) {
-        printf("%2d|", i); 
+        printf("%2d|", i);
         for (int j = 0; j < plansza->c; j++) {
-            printf(" %d ", tab2[i][j]); 
+            printf(" %c ", plansza->tab[i][j]);
         }
         printf("\n");
     }
@@ -168,12 +172,17 @@ void gra(saper *plansza, int **tab2, FILE *ruchy, FILE *wyniki) {
 		scanf(" %i %i", &r, &c);
 		if (z == 'f') {
 			printf("Flaga zostala postawiona w wierszu %d oraz kolumnie %d\n", r, c);
-			plansza->tab[r][c] = 'F';
+			plansza->rys[r][c] = 'F';
 		}
 		if (z == 'o') {
-			printf("Pole zostalo odkryte w wierszu %d oraz kolumnie %d\n", r, c);	
-			plansza->tab[r][c] = 'O';
-			sasiady(plansza,tab2);
+			printf("Pole zostalo odkryte w wierszu %d oraz kolumnie %d\n", r, c);
+			plansza->rys[r][c] = 'O';
+			//zamiast plansza tab potrzebna nowa tablica zeby nie stracic lokalizacji min do struktury dodac
+			//sasiady(plansza,tab2); niepotrzebna linia tylko bledy robi
+			if(plansza->tab[r][c]=='M'){
+                printf("\nporazka\n");
+                break;
+                }
 			printf("\n\nObok twojego odkrytego pola jest %d bomby!",tab2[r][c]);
 		}
 		rysuj(plansza, tab2, z, r, c, ruchy);
@@ -239,7 +248,7 @@ int main() {
 	int **tab2 = (int**)calloc(plansza->r, sizeof(int*));
 	for (int i = 0; i < plansza->r; i++)
 		tab2[i] = (int *)calloc(plansza->c, sizeof(int));
-	
+
 	sasiady(plansza, tab2);
 	gra(plansza, tab2, ruchy, wyniki);
 	free_saper(plansza, tab2);
