@@ -1,33 +1,36 @@
-#include<stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include<time.h>
+#include <time.h>
 
-typedef struct saper
-{
-	//r wiersze c kolumny mines ile min lacznie w planszy
-	char nazwa[15];
-	int r;
-	int c;
-	int mines;
-	char **tab;
-	char **rys;
-}saper;
+typedef struct saper {
+	/*
+	 r - wiersze, c - kolumny
+	 tab - tablica do przechowywania min
+	 rys - tablica do wyswietlania na terminal
+	*/
+    char nazwa[15];
+    int r, c, mines;
+    char **tab;
+    char **rys;
+} saper;
 
+int pierwsze_wywolanie = 1;
 
-saper *init(int r, int c, int mines){
-	saper *plansza = (saper*)malloc(sizeof(saper));
-	plansza->r = r;
-	plansza->c = c;
-	plansza->mines = mines;
-	// przypisanie 2-wymiarowej tablicy pamieci
-	plansza->tab = (char**)calloc(r, sizeof(char*));
-	for (int i = 0; i < r; i++)
-		plansza->tab[i] = (char*)calloc(c, sizeof(char));
-    plansza->rys = (char**)calloc(r, sizeof(char*));
-	for (int i = 0; i < r; i++)
-		plansza->rys[i] = (char*)calloc(c, sizeof(char));
-	return plansza;
+saper *init(int r, int c, int mines) {
+    saper *plansza = (saper *)malloc(sizeof(saper));
+    plansza->r = r;
+    plansza->c = c;
+    plansza->mines = mines;
+
+    plansza->tab = (char **)calloc(r, sizeof(char *));
+    plansza->rys = (char **)calloc(r, sizeof(char *));
+    for (int i = 0; i < r; i++) {
+        plansza->tab[i] = (char *)calloc(c, sizeof(char));
+        plansza->rys[i] = (char *)calloc(c, sizeof(char));
+    }
+
+    return plansza;
 }
 
 // zwalnianie pamieci
@@ -52,205 +55,230 @@ void free_saper(saper* plansza, int **tablica_pomocnicza) {
 	printf("Pamiec programu zostala zwolniona! \n");
 }
 
-// w losowa wspolrzedna przypisujemy mine
-saper *assign(saper *plansza)
-{
-	int row, col;
-	for (int i = 0; i < plansza->mines; i++) {
-		row = rand() % plansza->r;
-		col = rand() % plansza->c;
-		if (plansza->tab[row][col] == 'M') {
-			i--;
-			continue;
-		}
-		plansza->tab[row][col] = 'M';
-	}
-
-	return plansza;
-}
-
-void sasiady(saper *A, int **tab2){
-	// tab2 liczy ile min w sasiedztwie jak jest mina w dokola wspolrzednej w tab to do tab2 dopisujamy ++
-	for (int i = 0; i < A->r; i++) {
-		for (int j = 0; j < A->c; j++) {
-			if (A->tab[i][j] == 'M')
-				continue;
-			// w prawo
-			if (j + 1 < A->c && A->tab[i][j + 1] == 'M')
-				tab2[i][j]++;
-			// prawy dol (skosnie)
-			if (j + 1 < A->c && i + 1 < A->r && A->tab[i + 1][j + 1] == 'M')
-				tab2[i][j]++;
-			// w dol
-			if (i + 1 < A->r && A->tab[i + 1][j] == 'M')
-				tab2[i][j]++;
-			// w lewy dol
-			if (i + 1 < A->r && j > 0 && A->tab[i + 1][j - 1] == 'M')
-				tab2[i][j]++;
-			// w lewo
-			if (j > 0 && A->tab[i][j - 1] == 'M')
-				tab2[i][j]++;
-			// lewa gora
-			if (j > 0 && i > 0 && A->tab[i - 1][j - 1] == 'M')
-				tab2[i][j]++;
-			// gora
-			if (i > 0 && A->tab[i - 1][j] == 'M')
-				tab2[i][j]++;
-			// prawa gora
-			if (i > 0 && j + 1 < A->c && A->tab[i - 1][j + 1] == 'M')
-				tab2[i][j]++;
-		}
-	}
-}
-
-void rysuj(saper *plansza, int **tab2, char z, int rows, int columns, FILE *ruchy) {
-    printf("\nPlansza glowna:\n\n");
-    // Gorna obwodka
-    printf("  ");
-    for (int j = 0; j < plansza->c; j++) {
-        printf(" %2d", j);
-    }
-    printf("\n   ");
-    for (int j = 0; j < plansza->c; j++) {
-        printf("___");
-    }
-    printf("\n");
-
-    // Zawartosc planszy
-    for (int i = 0; i < plansza->r; i++) {
-        printf("%2d|", i);
-        for (int j = 0; j < plansza->c; j++) {
-            char znak = plansza->rys[i][j] == 'F'? plansza->rys[i][j]:plansza->rys[i][j] == 'O'?(char)(tab2[i][j]+'0'):'.';
-            //inna tablica zeby min nie zatracil
-            printf(" %c ", znak);
-            fprintf(ruchy, " %c", znak);
+saper *assign(saper *plansza) {
+    int row, col;
+    for (int i = 0; i < plansza->mines; i++) {
+        row = rand() % plansza->r;
+        col = rand() % plansza->c;
+        if (plansza->tab[row][col] == 'M') {
+            i--;
+            continue;
         }
-        printf("\n");
+        plansza->tab[row][col] = 'M';
     }
-
-    printf("\nPlansza pomocnicza:\n\n");
-
-    // Gorna obwodka
-    printf("  ");
-    for (int j = 0; j < plansza->c; j++) {
-        printf(" %2d", j);
-    }
-    printf("\n   ");
-    for (int j = 0; j < plansza->c; j++) {
-        printf("___");
-    }
-    printf("\n");
-
-    // Zawartosc pomocniczej planszy
-    for (int i = 0; i < plansza->r; i++) {
-        printf("%2d|", i);
-        for (int j = 0; j < plansza->c; j++) {
-            printf(" %c ", plansza->tab[i][j]);
-        }
-        printf("\n");
-    }
-
-    printf("\n");
+    return plansza;
 }
 
-void gra(saper *plansza, int **tab2, FILE *ruchy, FILE *wyniki) {
-	char z = ' ';
-	int r, c;
-	printf("\n---GRA SAPER---");
-	printf("\nZasady sterowania :");
-	printf("\nWpisz pole jakie chcesz zaznaczyc wedlug schematu");
-	printf("\nPrzyklad zaznaczenia flagi : 'f 3 4' stawia flage w 3 wierszu 4 kolumnie");
-	printf("\nPrzyklad odkrycia pola : 'o 14 5'   odkrywa pole w wierszu 14 oraz 5 kolumnie");
-	printf("\nAby wyjsc z gry nacisnij 'q' ");
-	while (z != 'q') {
-		printf("\nWykonaj ruch: ");
-		scanf(" %c", &z);
-		if (z == 'q') {
-			printf("Gra zostala zakonczona...\n");
-			break;
-		}
-		scanf(" %i %i", &r, &c);
-		if (z == 'f') {
-			printf("Flaga zostala postawiona w wierszu %d oraz kolumnie %d\n", r, c);
-			plansza->rys[r][c] = 'F';
-		}
-		if (z == 'o') {
-			printf("Pole zostalo odkryte w wierszu %d oraz kolumnie %d\n", r, c);
-			plansza->rys[r][c] = 'O';
-			//zamiast plansza tab potrzebna nowa tablica zeby nie stracic lokalizacji min do struktury dodac
-			//sasiady(plansza,tab2); niepotrzebna linia tylko bledy robi
-			if(plansza->tab[r][c]=='M'){
-                printf("\nporazka\n");
-                break;
-                }
-			printf("\n\nObok twojego odkrytego pola jest %d bomby!",tab2[r][c]);
-		}
-		rysuj(plansza, tab2, z, r, c, ruchy);
-	}
-}
-
-saper *start(saper *plansza) {
-	char x;
-	int k = 1;
-	int r, c, mines;
-	printf("GRA SAPER\n");
-	printf("wybierz poziom trudnosci:\n");
-	printf(" 'l' - latwy 9x9 10 min\n");
-	printf(" 's' - sredni 16x16 40 min\n");
-	printf(" 't' - trudny 16x30 99 min\n");
-	printf(" 'w' - wlasna plansza\n");
-	while (k) {
-		k = 0;
-		scanf(" %c", &x);
-		if (x == 'l')
-			plansza = init(9, 9, 10);
-		else if (x == 's')
-			plansza = init(16, 16, 40);
-		else if (x == 't')
-			plansza = init(16, 30, 99);
-		else if (x == 'w') {
-			printf("\npodaj dlugosc: ");
-			scanf("%i", &c);
-			printf("podaj szerokosc: ");
-			scanf("%i", &r);
-			k = 1;
-			while (k) {
-				k = 0;
-				printf("podaj ilosc min: ");
-				scanf("%i", &mines);
-				if (mines > r * c * 0.7 || mines < 1) {
-					printf("nieprawidlowa ilosc min\n");
-					k = 1;
-				}
+void sasiady(saper *A, int ***tab2) {
+    // tab2 liczy ile min w sasiedztwie, jak jest mina wokoło współrzędnej w tab, to do tab2 dopisujemy ++
+    for (int i = 0; i < A->r; i++) {
+        for (int j = 0; j < A->c; j++) {
+            if (A->tab[i][j] == 'M'){
+				(*tab2)[i][j] = 9; // Żeby było wiadomo gdzie jest mina w pomocniczej tablicy
+                continue;
 			}
-			plansza = init(r, c, mines);
-		} else {
-			printf("nieprawidlowa wartosc wpisz jeszcze raz: ");
-			k = 1;
-		}
-	}
-	return plansza;
+
+            // W prawo
+            if (j + 1 < A->c && A->tab[i][j + 1] == 'M')
+                (*tab2)[i][j]++;
+            // Prawy dół (skośnie)
+            if (j + 1 < A->c && i + 1 < A->r && A->tab[i + 1][j + 1] == 'M')
+                (*tab2)[i][j]++;
+            // W dół
+            if (i + 1 < A->r && A->tab[i + 1][j] == 'M')
+                (*tab2)[i][j]++;
+            // W lewy dół
+            if (i + 1 < A->r && j > 0 && A->tab[i + 1][j - 1] == 'M')
+                (*tab2)[i][j]++;
+            // W lewo
+            if (j > 0 && A->tab[i][j - 1] == 'M')
+                (*tab2)[i][j]++;
+            // Lewa góra
+            if (j > 0 && i > 0 && A->tab[i - 1][j - 1] == 'M')
+                (*tab2)[i][j]++;
+            // Góra
+            if (i > 0 && A->tab[i - 1][j] == 'M')
+                (*tab2)[i][j]++;
+            // Prawa góra
+            if (i > 0 && j + 1 < A->c && A->tab[i - 1][j + 1] == 'M')
+                (*tab2)[i][j]++;
+        }
+    }
+}
+
+void odkrywaj_dfs(saper **plansza, int **tab2, int r, int c) {
+    if (r < 0 || r >= (*plansza)->r || c < 0 || c >= (*plansza)->c)
+        return;
+
+    if ((*plansza)->rys[r][c] != 0 || (*plansza)->tab[r][c] == 'M')
+        return;
+
+    (*plansza)->rys[r][c] = '0' + tab2[r][c];
+    if (tab2[r][c] > 0 && pierwsze_wywolanie == 0)
+        return;
+
+    int dr[] = {-1, -1, -1, 0, 0, 1, 1, 1};
+    int dc[] = {-1, 0, 1, -1, 1, -1, 0, 1};
+    for (int i = 0; i < 8; i++) {
+        pierwsze_wywolanie = 0;
+        odkrywaj_dfs(plansza, tab2, r + dr[i], c + dc[i]); 
+    }
+}
+
+void rysuj(saper *plansza, int **tab2) {
+    printf("\n======= PLANSZA GRY =======\n\n");
+
+    printf("   ");
+    for (int j = 0; j < plansza->c; j++)
+        printf(" %2d", j);
+    printf("\n   ");
+    for (int j = 0; j < plansza->c; j++)
+        printf("---");
+    printf("\n");
+
+    for (int i = 0; i < plansza->r; i++) {
+        printf("%2d|", i);
+        for (int j = 0; j < plansza->c; j++) {
+            char znak = plansza->rys[i][j] ? plansza->rys[i][j] : '.';
+            printf(" %c ", znak);
+        }
+        printf("|\n");
+    }
+
+    printf("   ");
+    for (int j = 0; j < plansza->c; j++)
+        printf("---");
+    printf("\n");
+}
+
+void rysowanie_tablicy_pomocniczej(int **tab2,int r, int c) //W razie jakbyś chciał zobaczyć jeszcze tablicę pomocniczą to zrobiłem dodatkową funkcję z tego co usunąłem
+{
+    char znak;
+    printf("\n======= PLANSZA POMOCNICZA =======\n\n");
+
+    // Górna obwódka z numeracją kolumn
+    printf("   ");
+    for (int j = 0; j <c; j++) {
+        printf(" %2d", j);
+    }
+    printf("\n   ");
+    for (int j = 0; j <c; j++) {
+        printf("---");
+    }
+    printf("\n");
+
+    // Zawartość planszy pomocniczej
+    for (int i = 0; i <r; i++) {
+        printf("%2d|", i);  
+        for (int j = 0; j <c; j++) {
+            printf(" %d ", tab2[i][j]);
+        }
+        printf("|\n");
+    }
+
+    // Dolna obwódka
+    printf("   ");
+    for (int j = 0; j < c; j++) {
+        printf("---");
+    }
+    printf("\n\n");
+}
+void gra(saper *plansza, int **tab2) {
+    char z;
+    int r, c;
+
+    printf("\n--- GRA SAPER ---\n");
+    printf("Aby wyjsc, wpisz 'q'.\n\n");
+
+    while (1) {
+        printf("Wykonaj ruch: f r c (flaga) lub o r c (odkryj): ");
+        scanf(" %c", &z);
+
+        if (z == 'q') {
+            printf("Gra zakonczona.\n");
+            break;
+        }
+
+        scanf(" %d %d", &r, &c);
+        if (r < 0 || r >= plansza->r || c < 0 || c >= plansza->c) {
+            printf("Nieprawidlowe wspolrzedne!\n");
+            continue;
+        }
+
+        if (z == 'f') {
+            plansza->rys[r][c] = 'F';
+            printf("Postawiono flage na (%d, %d).\n", r, c);
+        } else if (z == 'o') {
+            if (plansza->tab[r][c] == 'M') {
+                printf("Niestety, trafiles na mine! Koniec gry.\n");
+                break;
+            }
+            pierwsze_wywolanie = 1; //Jak zniszczysz tą zmienną to cała funkcja się popsuje uważaj, wszystko tu jest bardzo mocno przemyślane xD
+            odkrywaj_dfs(&plansza, tab2, r, c);
+        }
+
+        rysuj(plansza, tab2);
+    }
+}
+
+saper *start() {
+    saper *plansza = NULL;
+    char x;
+
+    printf("GRA SAPER\n");
+    printf("Wybierz poziom trudnosci:\n");
+    printf("'l' - latwy (9x9, 10 min)\n's' - sredni (16x16, 40 min)\n't' - trudny (16x30, 99 min)\n'w' - wlasna plansza\n");
+
+    while (1) {
+        scanf(" %c", &x);
+        if (x == 'l') {
+            plansza = init(9, 9, 10);
+            break;
+        } else if (x == 's') {
+            plansza = init(16, 16, 40);
+            break;
+        } else if (x == 't') {
+            plansza = init(16, 30, 99);
+            break;
+        } else if (x == 'w') {
+            int r, c, mines;
+            printf("Podaj liczbe wierszy: ");
+            scanf("%d", &r);
+            printf("Podaj liczbe kolumn: ");
+            scanf("%d", &c);
+            do {
+                printf("Podaj liczbe min: ");
+                scanf("%d", &mines);
+                if (mines < 1 || mines > r * c * 0.7)
+                    printf("Nieprawidlowa liczba min. Sprobuj ponownie.\n");
+            } while (mines < 1 || mines > r * c * 0.7);
+
+            plansza = init(r, c, mines);
+            break;
+        } else {
+            printf("Nieprawidlowa opcja. Sprobuj ponownie: ");
+        }
+    }
+
+    return plansza;
 }
 
 int main() {
-	FILE *wyniki = fopen("wyniki_graczy.txt", "w");
-	FILE *ruchy = fopen("ruchy_graczy.txt", "w");
+    srand((unsigned int)time(NULL));
 
-	srand((unsigned int)time(NULL));
-	saper *plansza = NULL;
-	plansza = start(plansza);
+    saper *plansza = start();
+    printf("Podaj nazwe gracza: ");
+    scanf(" %s", plansza->nazwa);
 
-	printf("Podaj nazwe: ");
-	scanf(" %s", plansza->nazwa);
-	fprintf(wyniki, "%s : ", plansza->nazwa);
+    plansza = assign(plansza);
+    int **tab2 = (int **)calloc(plansza->r, sizeof(int *));
+    for (int i = 0; i < plansza->r; i++)
+        tab2[i] = (int *)calloc(plansza->c, sizeof(int));
 
-	plansza = assign(plansza);
-	int **tab2 = (int**)calloc(plansza->r, sizeof(int*));
-	for (int i = 0; i < plansza->r; i++)
-		tab2[i] = (int *)calloc(plansza->c, sizeof(int));
+    sasiady(plansza, &tab2);
+    rysuj(plansza, tab2);
+    gra(plansza, tab2);
 
-	sasiady(plansza, tab2);
-	gra(plansza, tab2, ruchy, wyniki);
-	free_saper(plansza, tab2);
-	return 0;
+    free_saper(plansza, tab2);
+    return 0;
 }
