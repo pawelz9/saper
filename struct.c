@@ -61,11 +61,10 @@ saper *assign(saper *plansza) {
     return plansza;
 }
 
-int sasiady(saper *plansza, int **tab2) {
+void sasiady(saper *plansza, int **tab2) {
     // tab2 liczy ile min w sasiedztwie, jak jest mina wokoło współrzędnej w tab, to do tab2 dopisujemy ++
     for (int i = 0; i < plansza->r; i++) {
         for (int j = 0; j < plansza->c; j++) {
-
             // W prawo
             if (j + 1 < plansza->c && plansza->tab[i][j + 1] == 'M')
                 tab2[i][j]++;
@@ -92,7 +91,7 @@ int sasiady(saper *plansza, int **tab2) {
                 tab2[i][j]++;
         }
     }
-    return plansza;
 }
+
 
 

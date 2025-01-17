@@ -4,9 +4,10 @@
 #include <time.h>
 #include <unistd.h>
 #include "gra.h"
+#include "struct.h"
+#include "rysuj.h"
 
-
-saper *start(int argc, char *argv[]) {
+saper *start(int argc, char *argv[],char *nazwa_gracza) {
     saper *plansza = NULL;
     char x;
     int r,c,m;
@@ -21,7 +22,7 @@ saper *start(int argc, char *argv[]) {
             plansza = init(9, 9, 10);
             break;
         case 's':
-            printf("wybrales poziom latwy 9x9 10min");
+            printf("wybrales poziom sredni 16x16 40min");
             plansza = init(16, 16, 40);
             break;
         case 't':
@@ -43,6 +44,7 @@ saper *start(int argc, char *argv[]) {
         case 'n':
             strncpy(nazwa, optarg, sizeof(nazwa) - 1);
             nazwa[sizeof(nazwa) - 1] = '\0';
+            strcpy(nazwa_gracza,nazwa);
             break;
         default:
             printf("nieznany parametr");
@@ -71,7 +73,7 @@ saper *start(int argc, char *argv[]) {
         plansza->nazwa[sizeof(plansza->nazwa) - 1] = '\0'; 
         printf("\nNazwa gracza: %s\n", plansza->nazwa);
     } else  {
-        printf("\nnie podano nazwy gracza. Ustawiono domyslna nazwe: 'Gracz'.\n");
+        printf("\nNie podano nazwy gracza. Ustawiono domyslna nazwe: 'Gracz'.\n");
         strncpy(plansza->nazwa, "Gracz", sizeof(plansza->nazwa) - 1);
         plansza->nazwa[sizeof(plansza->nazwa) - 1] = '\0';
     }
@@ -79,18 +81,26 @@ saper *start(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+
+
     srand((unsigned int)time(NULL));
 
-    saper *plansza = start(argc,argv);
+    FILE *wyniki_graczy = fopen("wyniki_graczy","a"); //przy kolejnym wywołaniu plik się nie czyści
+    FILE *zapis_planszy = fopen("zapis_planszy","w");
+
+    char *nazwa_gracza = (char*)malloc(15*sizeof(char));
+
+    saper *plansza = start(argc,argv,nazwa_gracza);
 
     plansza = assign(plansza);
-    int **tab2 = (int **)calloc(plansza->r, sizeof(int *));
+    int **tab2 = (int**)calloc(plansza->r, sizeof(int*));
+
     for (int i = 0; i < plansza->r; i++)
         tab2[i] = (int *)calloc(plansza->c, sizeof(int));
 
-    plansza=sasiady(plansza, tab2);
-    rysuj(plansza, tab2);
-    gra(plansza, tab2);
+    sasiady(plansza, tab2);
+    rysuj(plansza, tab2,zapis_planszy,nazwa_gracza);
+    gra(plansza, tab2,wyniki_graczy,zapis_planszy,nazwa_gracza);
 
     free_saper(plansza, tab2);
     return 0;

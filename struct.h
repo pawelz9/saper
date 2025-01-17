@@ -14,7 +14,7 @@ typedef struct saper {
 } saper;
 saper *init(int r, int c, int mines);
 saper *assign(saper *plansza);
-int sasiady(saper *plansza, int **tab2);
+void sasiady(saper *plansza, int **tab2);
 void free_saper(saper* plansza, int **tablica_pomocnicza);
 
 #endif
