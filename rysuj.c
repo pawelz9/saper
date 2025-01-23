@@ -4,27 +4,22 @@
 #include "rysuj.h"
 
 
-int pierwsze_wywolanie = 1;
 
 
 
-void odkrywaj_dfs(saper *plansza, int **tab2, int r, int c) { 
+
+void odkrywaj_dfs(saper *plansza, int **tab2, int r, int c) {
     if (r < 0 || r >= plansza->r || c < 0 || c >= plansza->c)
         return;
-
     if (plansza->rys[r][c] != '.' || plansza->tab[r][c] == 'M')
-        return;
-
+    return;
     plansza->rys[r][c] = '0' + tab2[r][c];
-    if (tab2[r][c] > 0 && pierwsze_wywolanie == 0)
+    if (tab2[r][c] > 0)
         return;
-
     int dr[] = {-1, -1, -1, 0, 0, 1, 1, 1};
     int dc[] = {-1, 0, 1, -1, 1, -1, 0, 1};
     for (int i = 0; i < 8; i++) {
-        pierwsze_wywolanie = 0;
         odkrywaj_dfs(plansza, tab2, r + dr[i], c + dc[i]);
-        pierwsze_wywolanie = 1;
     }
 }
 
