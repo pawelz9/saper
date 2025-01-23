@@ -5,6 +5,10 @@
 #include "struct.h"
 #include "rysuj.h"
 #include <time.h>
+#include <string.h>
+#define MAX_GRACZY 100
+#define MAX_NAZWA 15
+
 int wynik(saper *plansza,int odkryte){
     int poziom_trudnsoci=0;
     int wynik=0;
@@ -20,6 +24,51 @@ int wynik(saper *plansza,int odkryte){
     return wynik;
 }
 
+
+
+void leaderboard(FILE *wyniki_graczy) {
+    FILE *leaderboard = fopen("leaderboard.txt", "w");
+    if (leaderboard == NULL) {
+        perror("Błąd przy otwieraniu pliku leaderboard");
+        return;
+    }
+
+    char nazwy[MAX_GRACZY][MAX_NAZWA];
+    int wyniki[MAX_GRACZY];
+    int liczba_graczy = 0;
+    FILE *kopia = fopen("wyniki_graczy","r");
+    // Wczytywanie danych z pliku wyniki_graczy
+    while (fscanf(kopia, "%14s %d", nazwy[liczba_graczy], &wyniki[liczba_graczy]) == 2) {
+        liczba_graczy++;
+        if (liczba_graczy == MAX_GRACZY) {
+            printf("Osiągnięto maksymalną liczbę graczy.\n");
+            break;
+        }
+    }
+    // Sortowanie bąbelkowe (możesz użyć innych algorytmów, np. quicksort)
+    for (int i = 0; i < liczba_graczy - 1; i++) {
+        for (int j = 0; j < liczba_graczy - i - 1; j++) {
+            if (wyniki[j] < wyniki[j + 1]) {
+                // Zamiana miejscami
+                int temp_wynik = wyniki[j];
+                wyniki[j] = wyniki[j + 1];
+                wyniki[j + 1] = temp_wynik;
+
+                char temp_nazwa[MAX_NAZWA];
+                strcpy(temp_nazwa, nazwy[j]);
+                strcpy(nazwy[j], nazwy[j + 1]);
+                strcpy(nazwy[j + 1], temp_nazwa);
+            }
+        }
+    }
+
+    // Zapisanie posortowanych wyników do pliku leaderboard
+    for (int i = 0; i < 5; i++) {
+        fprintf(leaderboard, "%s -> %d\n", nazwy[i], wyniki[i]);
+    }
+
+    fclose(leaderboard);
+}
 int gra(saper *plansza, int **tab2,FILE *wyniki_graczy,FILE *zapis_planszy,char *nazwa_gracza) {
     char z;
     int licz=0;
@@ -86,7 +135,8 @@ int gra(saper *plansza, int **tab2,FILE *wyniki_graczy,FILE *zapis_planszy,char 
             else if (plansza->tab[r][c] == 'M') {
                 printf("Niestety, trafiles na mine! Koniec gry.\n");
                 printf("Wynik: %d \n",wynik_gracza);
-                fprintf(wyniki_graczy,"%s -> %d \n\n",nazwa_gracza,wynik_gracza);
+                fprintf(wyniki_graczy,"%s  %d \n\n",nazwa_gracza,wynik_gracza);
+                leaderboard(wyniki_graczy);
                 return 0;
             }
             licz++;
@@ -98,7 +148,8 @@ int gra(saper *plansza, int **tab2,FILE *wyniki_graczy,FILE *zapis_planszy,char 
             //wynik_gracza = wynik(plansza,odkryte);
             printf("\ngratulacje wygrales!\n");
             printf("Wynik: %d\n",wynik_gracza);
-            fprintf(wyniki_graczy,"%s -> %d \n\n",nazwa_gracza,wynik_gracza);
+            fprintf(wyniki_graczy,"%s  %d \n\n",nazwa_gracza,wynik_gracza);
+            leaderboard(wyniki_graczy);
             return 0;
         }
     }

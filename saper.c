@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 
     srand((unsigned int)time(NULL));
 
-    FILE *wyniki_graczy = fopen("wyniki_graczy","a"); //przy kolejnym wywołaniu plik się nie czyści
+    FILE *wyniki_graczy = fopen("wyniki_graczy","a+"); //przy kolejnym wywołaniu plik się nie czyści
     FILE *zapis_planszy = fopen("zapis_planszy","w");
 
     char *nazwa_gracza = (char*)malloc(15*sizeof(char));
